@@ -5,7 +5,7 @@ import { closeLoanIfFullyPaid } from "./loan.service.js";
 
 export const PaymentService = {
   createPayment: async (
-    payload: { loanId: string; utrNumber: string; amount: number; date?: Date },
+    payload: { loanId: string; utrNumber: string; amount: number; date?: Date | undefined },
     byUserId?: string,
   ) => {
 
@@ -41,10 +41,11 @@ export const PaymentService = {
       if (amount > outstanding)
         throw new Error("Payment exceeds outstanding amount");
 
-      const payment = await Payment.create(
-        [{ loanId, utrNumber, amount, date }],
-        { session },
-      );
+      const paymentDocument = date
+        ? { loanId, utrNumber, amount, date }
+        : { loanId, utrNumber, amount };
+
+      const payment = await Payment.create([paymentDocument], { session });
 
       await session.commitTransaction();
       session.endSession();
