@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import path from "path";
 import authRoutes from "./routes/auth.routes.js";
 import applicationRoutes from "./routes/application.routes.js";
@@ -9,8 +8,9 @@ import paymentRoutes from "./routes/payment.routes.js";
 import installmentRoutes from "./routes/installment.routes.js";
 import documentRoutes from "./routes/document.routes.js";
 import { errorHandler, notFound } from "./middlewares/error.middleware.js";
+import { connectDatabase, env } from "./config/index.js";
 
-dotenv.config();
+await connectDatabase();
 
 const app = express();
 
@@ -33,9 +33,9 @@ app.use("/api/documents", documentRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = env.port;
 
-if (process.env.NODE_ENV !== "test") {
+if (env.nodeEnv !== "test") {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
