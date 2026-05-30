@@ -7,7 +7,12 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "npm run build && node dist/server.js",
+    "start": "npm run build && node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "seed": "npm run build && node dist/utils/seed.js",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run typecheck"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

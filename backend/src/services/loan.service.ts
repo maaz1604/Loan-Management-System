@@ -25,30 +25,27 @@ export const sanctionLoan = async (loanId: string,byUserId: string,approve: bool
   const session = await mongoose.startSession();
 
   try {
+    session.startTransaction();
 
-    //loan section
     let loan = await LoanModel.findById(loanId).session(session);
     if (!loan) throw new Error("Loan not found");
 
-    // loan status section    
     const fromStatus = loan.status;
     loan.status = approve ? "SANCTIONED" : "REJECTED";
     if (!approve) {
         loan.rejectionReason = reason ?? null;
     }
     await loan.save({ session });
-    await LoanHistory.create(
-      [
-        {
-          loanId: loan._id,
-          changedBy: byUserId,
-          fromStatus,
-          toStatus: loan.status,
-          reason,
-        },
-      ],
-      { session },
-    );
+    const historyEntry: Record<string, unknown> = {
+      loanId: loan._id,
+      changedBy: byUserId,
+      fromStatus,
+      toStatus: loan.status,
+    };
+    if (reason) {
+      historyEntry.reason = reason;
+    }
+    await LoanHistory.create([historyEntry], { session });
     await session.commitTransaction();
     return loan;
   } catch (err) {
@@ -66,6 +63,7 @@ export const disburseLoan = async (
 ) => {
   const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     let loan = await LoanModel.findById(loanId).session(session);
     if (!loan) throw new Error("Loan not found");
     if (loan.status !== "SANCTIONED")

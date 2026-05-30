@@ -13,6 +13,6 @@ const requireEnv = (name: string) => {
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT) || 3000,
-  mongoUri: requireEnv("MONGO_URI"),
+  mongoUri: process.env.MONGO_URI ?? requireEnv("MONGODB_URI"),
   jwtSecret: process.env.JWT_SECRET ?? "",
 };
