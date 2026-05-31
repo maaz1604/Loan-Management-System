@@ -17,11 +17,20 @@ const buildToken = (user: { _id: unknown; role: string }) => {
 export const AuthController = {
   register: async (req: Request, res: Response) => {
     const { name, email, password, role, pan, dob, monthlySalary, employmentMode } = req.body;
+    const effectiveRole = role || "Borrower";
 
     if (!name || !email || !password) {
       return res.status(400).json({
          message: "name, email and password are required"
         });
+    }
+
+    if (effectiveRole === "Borrower") {
+      if (!monthlySalary || Number(monthlySalary) <= 0 || !employmentMode) {
+        return res.status(400).json({
+          message: "monthlySalary and employmentMode are required for borrowers",
+        });
+      }
     }
 
     const existingUser = await User.findOne({ email });
@@ -32,16 +41,21 @@ export const AuthController = {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
+    const createPayload: Record<string, unknown> = {
       name,
       email,
       password: hashedPassword,
-      role,
+      role: effectiveRole,
       pan,
       dob,
-      monthlySalary,
       employmentMode,
-    });
+    };
+
+    if (monthlySalary !== undefined && monthlySalary !== null && monthlySalary !== "") {
+      createPayload.monthlySalary = Number(monthlySalary);
+    }
+
+    const user = await User.create(createPayload as any);
 
     const token = buildToken(user);
 

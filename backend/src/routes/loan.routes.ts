@@ -6,6 +6,7 @@ import { requireSanction, requireDisbursement } from "../middlewares/role.middle
 const router = Router();
 
 router.get("/", authenticateToken, LoanController.list);
+router.get("/mine", authenticateToken, LoanController.mine);
 router.post("/", authenticateToken, LoanController.create);
 router.get("/:id", authenticateToken, LoanController.getById);
 router.patch("/:id/sanction", authenticateToken, requireSanction, LoanController.sanction);

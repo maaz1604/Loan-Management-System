@@ -18,7 +18,54 @@ const getSalarySlipUrl = (req: Request) => {
   return null;
 };
 
+const buildSalesLeads = async () => {
+  const applicationBorrowerIds = await LoanApplication.distinct("borrowerId");
+
+  const leads = await User.find({
+    role: "Borrower",
+    _id: { $nin: applicationBorrowerIds },
+  })
+    .select("_id name email createdAt updatedAt pan dob monthlySalary employmentMode")
+    .sort({ createdAt: -1 });
+
+  return leads.map((lead) => ({
+    ...lead.toObject(),
+    status: "LEAD" as const,
+    applicationCount: 0,
+  }));
+};
+
 export const ApplicationController = {
+  listLeads: async (_req: Request, res: Response) => {
+    const leads = await buildSalesLeads();
+    return res.status(200).json({ leads });
+  },
+
+  list: async (req: Request, res: Response) => {
+    const view = new URL(req.originalUrl, "http://localhost").searchParams.get("view");
+    if (view === "sales-leads") {
+      const leads = await buildSalesLeads();
+      return res.status(200).json({ leads });
+    }
+
+    const applications = await LoanApplication.find()
+      .populate("borrowerId", "_id name email role")
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ applications });
+  },
+
+  mine: async (req: Request, res: Response) => {
+    if (!req.user?._id) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const applications = await LoanApplication.find({ borrowerId: req.user._id })
+      .populate("borrowerId", "_id name email role")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ applications });
+  },
+
   createLead: async (req: Request, res: Response) => {
     const borrowerId = req.user?._id ?? req.body.borrowerId;
     const salarySlipUrl = getSalarySlipUrl(req);
@@ -53,6 +100,28 @@ export const ApplicationController = {
   assignToSales: async (req: Request, res: Response) => {
     const application = await ApplicationService.assignToSales(req.params.id as string, req.body.salesUserId as string);
     return res.status(200).json({ message: "Application assigned to sales", application });
+  },
+
+  sanction: async (req: Request, res: Response) => {
+    const { approve, reason } = req.body;
+    const reasonText = typeof reason === "string" ? reason : "";
+
+    if (!reasonText.trim()) {
+      return res.status(400).json({ message: "Reason is required" });
+    }
+
+    const result = await ApplicationService.sanctionDecision(
+      req.params.id as string,
+      req.user!._id,
+      Boolean(approve),
+      reasonText,
+    );
+
+    return res.status(200).json({
+      message: Boolean(approve) ? "Application approved" : "Application rejected",
+      application: result.application,
+      loan: result.loan,
+    });
   },
 
   convertToLoan: async (req: Request, res: Response) => {

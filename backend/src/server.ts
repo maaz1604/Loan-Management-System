@@ -3,10 +3,14 @@ import cors from "cors";
 import path from "path";
 import authRoutes from "./routes/auth.routes.js";
 import applicationRoutes from "./routes/application.routes.js";
+import salesRoutes from "./routes/sales.routes.js";
 import loanRoutes from "./routes/loan.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import installmentRoutes from "./routes/installment.routes.js";
 import documentRoutes from "./routes/document.routes.js";
+import { SalesController } from "./controllers/sales.controller.js";
+import { authenticateToken } from "./middlewares/auth.middleware.js";
+import { requireSales } from "./middlewares/role.middleware.js";
 import { errorHandler, notFound } from "./middlewares/error.middleware.js";
 import { connectDatabase, env } from "./config/index.js";
 
@@ -25,6 +29,8 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/sales", salesRoutes);
+app.get("/api/sales/leads", authenticateToken, requireSales, SalesController.listLeads);
 app.use("/api/loans", loanRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/installments", installmentRoutes);

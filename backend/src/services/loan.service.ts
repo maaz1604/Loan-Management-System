@@ -60,6 +60,7 @@ export const disburseLoan = async (
   loanId: string,
   byUserId: string,
   disbursedAt?: Date,
+  reason?: string
 ) => {
   const session = await mongoose.startSession();
   try {
@@ -78,7 +79,7 @@ export const disburseLoan = async (
           changedBy: byUserId,
           fromStatus,
           toStatus: loan.status,
-          reason: "Funds released",
+          reason: reason || "Funds released",
         },
       ],
       { session },
