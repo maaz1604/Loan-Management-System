@@ -41,6 +41,12 @@ This project covers the full loan lifecycle:
 └── .env.example        # Combined environment variables template for reference
 ```
 
+## Live Demo & Tutorial
+
+- **Live Demo:** Visit https://loan-management-system-bay-ten.vercel.app/login to view the deployed frontend. You can sign in with any of the seeded accounts (see "Seed Accounts for Testing") using the password `password123`, or create a new account to try the borrower flow.
+- **API Base URL (demo):** The deployed frontend points to `https://loan-management-system-21s3.onrender.com` (set in `frontend/.env.local` as `NEXT_PUBLIC_API_URL`). If you encounter a `"Route not found"` response when accessing uploaded files, note that the demo backend may use ephemeral storage for uploads—see the Deployment Notes below.
+- **Tutorial Video:** Watch the walkthrough video for a guided tour and usage instructions: https://drive.google.com/file/d/1eC70X4SxsMViY222Bt8tD0FlU88q1QBw/view?usp=sharing
+
 ## Setup Instructions
 
 ### 1. Environment Configuration
