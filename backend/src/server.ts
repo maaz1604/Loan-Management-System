@@ -14,8 +14,6 @@ import { requireSales } from "./middlewares/role.middleware.js";
 import { errorHandler, notFound } from "./middlewares/error.middleware.js";
 import { connectDatabase, env } from "./config/index.js";
 
-await connectDatabase();
-
 const app = express();
 
 app.use(cors());
@@ -44,6 +42,10 @@ const PORT = env.port;
 if (env.nodeEnv !== "test") {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+  });
+
+  void connectDatabase().catch((error) => {
+    console.error("Database connection failed", error);
   });
 }
 
